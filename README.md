@@ -1,0 +1,1 @@
+Azure Boards Insights é uma aplicação projetada para acessar dados do Azure Boards, transformá-los em gráficos e fornecer insights detalhados para aprimorar a produtividade e a eficiência das squads.
