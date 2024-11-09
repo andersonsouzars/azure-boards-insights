@@ -1,0 +1,26 @@
+services:
+  nginx:
+    image: nginx:stable
+    container_name: abi_nginx
+    ports:
+      - "8080:80" # Mapeia a porta 8080 para acesso ao Nginx
+    volumes:
+      - ./docker/nginx/default.conf:/etc/nginx/conf.d/default.conf
+      - ./src:/var/www/html
+    depends_on:
+      - php
+    networks:
+      - abi-net
+
+  php:
+    build:
+      context: ./docker/php
+    container_name: abi_php
+    volumes:
+      - ./src:/var/www/html
+    networks:
+      - abi-net
+
+networks:
+  abi-net:
+    driver: bridge
