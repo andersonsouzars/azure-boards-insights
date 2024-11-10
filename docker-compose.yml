@@ -6,7 +6,7 @@ services:
       - "8080:80" # Mapeia a porta 8080 para acesso ao Nginx
     volumes:
       - ./docker/nginx/default.conf:/etc/nginx/conf.d/default.conf
-      - ./src:/var/www/html
+      - .:/var/www/html  # Mapeia todo o projeto para /var/www/html no container
     depends_on:
       - php
     networks:
@@ -17,7 +17,7 @@ services:
       context: ./docker/php
     container_name: abi_php
     volumes:
-      - ./src:/var/www/html
+      - .:/var/www/html  # Mapeia todo o projeto para /var/www/html no container
     networks:
       - abi-net
 
