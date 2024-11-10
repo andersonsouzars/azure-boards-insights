@@ -11,5 +11,8 @@ RUN apt-get update && apt-get install -y \
 # Configurar logs (opcional, para debug)
 RUN mkdir -p /var/log/php && touch /var/log/php/php.log
 
+# Instalar o Composer
+RUN curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin --filename=composer
+
 # Definir o diretório de trabalho padrão
 WORKDIR /var/www/html
