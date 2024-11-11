@@ -10,5 +10,7 @@
             "name": "Anderson da Silva de Souza"
         }
     ],
-    "require": {}
+    "require-dev": {
+        "phpunit/phpunit": "^11"
+    }
 }
