@@ -18,6 +18,9 @@ services:
     container_name: abi_php
     volumes:
       - .:/var/www/html  # Mapeia todo o projeto para /var/www/html no container
+    environment:
+      - XDEBUG_MODE=coverage
+      - XDEBUG_CONFIG="client_host=host.docker.internal"
     networks:
       - abi-net
 
