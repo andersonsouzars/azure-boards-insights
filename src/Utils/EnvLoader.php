@@ -119,7 +119,7 @@ class EnvLoader
      * 
      * @return string Valor sanitizado.
      */
-    private function sanitizeValue(string $value): string
+    private static function sanitizeValue(string $value): string
     {
         if ((str_starts_with($value, '"') && str_ends_with($value, '"')) ||
             (str_starts_with($value, "'") && str_ends_with($value, "'"))
