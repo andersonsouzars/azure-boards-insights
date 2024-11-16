@@ -2,7 +2,7 @@
 
 namespace App\AzureBoards\Services;
 
-use App\AzureBoards\Contracts\ApiServiceInterface;
+use App\AzureBoards\Abstract\AbstractApiService;
 use App\AzureBoards\Contracts\AzureBoardsClientInterface;
 
 /**
@@ -13,7 +13,7 @@ use App\AzureBoards\Contracts\AzureBoardsClientInterface;
  *
  * @package App\AzureBoards\Services
  */
-class WorkItemHistoryService implements ApiServiceInterface
+class WorkItemHistoryService extends AbstractApiService
 {
     /**
      * @var AzureBoardsClientInterface Cliente para realizar requisições HTTP autenticadas à API do Azure Boards.
@@ -31,10 +31,11 @@ class WorkItemHistoryService implements ApiServiceInterface
      * @param AzureBoardsClientInterface $client Instância do cliente para comunicação com a API do Azure Boards.
      * @param string $organization Nome da organização no Azure DevOps.
      */
-    public function __construct(AzureBoardsClientInterface $client, string $organization)
+    public function __construct(AzureBoardsClientInterface $client)
     {
         $this->client = $client;
-        $this->organization = $organization;
+        $organization = $_ENV['AZURE_DEVOPS_ORGANIZATION'];
+        $this->url = "https://dev.azure.com/{$organization}/_apis/wit/workitems/";
     }
 
     /**
@@ -48,7 +49,7 @@ class WorkItemHistoryService implements ApiServiceInterface
     public function execute(array $params): array
     {
         $id = $params['id'];
-        $url = "https://dev.azure.com/{$this->organization}/_apis/wit/workitems/{$id}/updates?api-version=7.0";
+        $url = $this->url."{$id}/updates?api-version=7.0";
 
         return $this->client->request('GET', $url);
     }

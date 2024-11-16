@@ -4,30 +4,23 @@ use App\AzureBoards\AzureBoardsClient;
 use App\AzureBoards\Services\WIQLService;
 use App\AzureBoards\Services\WorkItemHistoryService;
 use App\AzureBoards\Services\WorkItemService;
-use App\Utils\EnvLoader;
-use App\Utils\FileReader;
 
 require_once 'vendor/autoload.php';
 
-// Carregar variáveis de ambiente
-$envLoader = new EnvLoader(__DIR__ . '/.env', new FileReader);
-$envLoader->load();
-
 // Configurações básicas
-$organization = EnvLoader::get('AZURE_DEVOPS_ORGANIZATION');
-$project = EnvLoader::get('AZURE_DEVOPS_PROJECT');
-$pat = EnvLoader::get('AZURE_DEVOPS_PAT');
-$areaPath = EnvLoader::get('AZURE_DEVOPS_AREA_PATH');
-$iterationPath = EnvLoader::get('AZURE_DEVOPS_ITARATION_PATH');
+$project = $_ENV['AZURE_DEVOPS_PROJECT'];
+$areaPath = $_ENV['AZURE_DEVOPS_AREA_PATH'];
+$iterationPath = $_ENV['AZURE_DEVOPS_ITARATION_PATH'];
 $state = "Pronto para Teste";
 
 // Inicializa o cliente principal do Azure Boards
-$azureClient = new AzureBoardsClient($pat);
+$azureClient = new AzureBoardsClient();
 
 // Inicializa os serviços
-$wiqlService = new WIQLService($azureClient, $organization, $project);
-$workItemService = new WorkItemService($azureClient, $organization);
-$workItemHistoryService = new WorkItemHistoryService($azureClient, $organization);
+$wiqlService = new WIQLService($azureClient);
+$workItemService = new WorkItemService($azureClient);
+$workItemHistoryService = new WorkItemHistoryService($azureClient);
+
 
 // Query WIQL para buscar os Work Items desejados
 $query = [

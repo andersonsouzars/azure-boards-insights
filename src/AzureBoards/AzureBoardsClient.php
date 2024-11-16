@@ -28,13 +28,12 @@ class AzureBoardsClient implements AzureBoardsClientInterface
     /**
      * Construtor da classe AzureBoardsClient.
      *
-     * @param string $pat Token de Acesso Pessoal (PAT) para autenticação na API do Azure Boards.
      * @param Client|null $httpClient Instância opcional do cliente GuzzleHTTP. Caso não seja fornecida, uma nova instância será criada.
      */
-    public function __construct(string $pat, ?Client $httpClient = null)
+    public function __construct(?Client $httpClient = null)
     {
         $this->httpClient = $httpClient ?: new Client();
-        $this->pat = $pat;
+        $this->pat = $_ENV['AZURE_DEVOPS_PAT'];
     }
 
     /**
