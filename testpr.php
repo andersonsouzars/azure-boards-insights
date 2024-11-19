@@ -2,6 +2,8 @@
 
 require_once __DIR__ . '/vendor/autoload.php';
 
+use App\AzureBoards\AzureBoardsClient;
+use App\AzureBoards\Services\WorkItemService;
 use GuzzleHttp\Client;
 use GuzzleHttp\Exception\RequestException;
 
@@ -44,7 +46,7 @@ class AzureDevOpsService
     {
         try {
             // Corrigida a URL gerada
-            $response = $this->httpClient->get("wit/workitems/{$workItemId}?expand=relations&api-version=7.0");
+            $response = $this->httpClient->get("_apis/wit/workitems/{$workItemId}?\$expand=relations&api-version=7.0");
             return json_decode($response->getBody(), true);
         } catch (RequestException $e) {
             throw new \Exception('Erro ao buscar detalhes do Work Item: ' . $e->getMessage());
@@ -54,13 +56,21 @@ class AzureDevOpsService
     public function getPullRequestHistory(string $repositoryId, int $pullRequestId): int
     {
         try {
-            $response = $this->httpClient->get("git/repositories/{$repositoryId}/pullRequests/{$pullRequestId}/threads?api-version=7.0");
+            //$response = $this->httpClient->get("_api/git/repositories/{$repositoryId}/pullRequests/{$pullRequestId}/threads?api-version=7.0");
+            $response = $this->httpClient->get("_apis/git/repositories/{$repositoryId}/pullrequests/{$pullRequestId}//threads?api-version=7.1-preview.1");
+                                                
             $threads = json_decode($response->getBody(), true);
+
 
             $waitForAuthorCount = 0;
             foreach ($threads['value'] as $thread) {
                 foreach ($thread['comments'] as $comment) {
-                    if (strpos(strtolower($comment['content']), 'wait for author') !== false) {
+
+                    if (
+                        $comment['commentType'] === 'system' &&
+                        isset($comment['content']) && 
+                        stripos($comment['content'], 'voted -5') !== false
+                    ){
                         $waitForAuthorCount++;
                     }
                 }
@@ -118,35 +128,61 @@ try {
 
         $pbiDetails = $azureService->getWorkItemDetails($pbiId);
 
-        echo '<pre>';
-        print_r($pbiDetails);
-        exit;
+        //echo '<pre>';
+        //print_r($pbiDetails);
+        //exit;
         
         // Filtra relações para encontrar PRs
         $prLinks = array_filter($pbiDetails['relations'] ?? [], function ($relation) {
-            return strpos($relation['rel'], 'ArtifactLink') !== false && strpos($relation['url'], 'pullRequestId') !== false;
+            return $relation['rel'] === 'ArtifactLink' && strpos($relation['url'], 'vstfs:///Git/PullRequestId') === 0;
         });
 
+        //echo '<pre>';
+        //print_R($prLinks);
+        //exit;
+
         foreach ($prLinks as $link) {
-            $prDetails = parse_url($link['url']);
-            parse_str($prDetails['query'], $params);
+            // Extrai os componentes da URL "vstfs:///Git/PullRequestId/{repositoryId}/{pullRequestId}"
+            $urlParts = explode('/', $link['url']);
+        
+            //echo '<pre>';
+            //print_R($link);
+            //print_R($urlParts);
+            //exit;
+            
+            
 
-            $repositoryId = $params['repositoryId'] ?? null;
-            $pullRequestId = $params['pullRequestId'] ?? null;
 
-            if ($repositoryId && $pullRequestId) {
-                // Conta ocorrências de "wait for author"
-                $waitForAuthorCount = $azureService->getPullRequestHistory($repositoryId, $pullRequestId);
+            // Verifica se a URL tem os elementos esperados
+            if (count($urlParts) >= 5 && $urlParts[3] === 'Git' && $urlParts[4] === 'PullRequestId') {
 
-                if ($waitForAuthorCount > 0) {
-                    $resultados[] = [
-                        'pbi' => $pbiId,
-                        'pr' => $pullRequestId,
-                        'wait_for_author_count' => $waitForAuthorCount
-                    ];
+                 // Decodifica a URL para substituir %2F por /
+                 $decodedPart = urldecode($urlParts[5]);
+
+                 // Divide a string usando "/"
+                 $parts = explode('/', $decodedPart);
+
+                 
+                $repositoryId = $parts[1] ?? null;
+                $pullRequestId = $parts[2] ?? null;
+        
+                if ($repositoryId && $pullRequestId) {
+                    // Conta ocorrências de "wait for author"
+                    $waitForAuthorCount = $azureService->getPullRequestHistory($repositoryId, $pullRequestId);
+        
+                    //echo 'pbi = '.$pbiId.' $waitForAuthorCount = '.$waitForAuthorCount.' <br />';
+
+                    if ($waitForAuthorCount > 0) {
+                        $resultados[] = [
+                            'pbi' => $pbiId,
+                            'pr' => $pullRequestId,
+                            'wait_for_author_count' => $waitForAuthorCount
+                        ];
+                    }
                 }
             }
         }
+        
     }
 
     // Exibe o resultado final
