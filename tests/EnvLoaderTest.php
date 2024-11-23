@@ -114,4 +114,35 @@ class EnvLoaderTest extends TestCase
 
         $this->assertEquals('default_value', EnvLoader::get('UNDEFINED_VAR', 'default_value'));
     }
+
+    public function testProcessEnvLineIgnoresEmptyLines(): void
+    {
+        $this->fileReaderMock->method('exists')->willReturn(true);
+        $this->fileReaderMock->method('readLines')->willReturn(["", "   ", "\n"]);
+
+        $envLoader = new EnvLoader('/mock/path/.env', $this->fileReaderMock);
+        $envLoader->load();
+
+        // Verifica se nenhuma variável inesperada foi definida
+        $this->assertArrayNotHasKey('', $_ENV);
+    }
+
+    public function testSanitizeValueRemovesQuotes(): void
+    {
+        $reflection = new \ReflectionClass(EnvLoader::class);
+        $method = $reflection->getMethod('sanitizeValue');
+        $method->setAccessible(true);
+
+        $this->assertEquals('value', $method->invokeArgs(null, ['"value"']));
+        $this->assertEquals('value', $method->invokeArgs(null, ["'value'"]));
+    }
+
+    public function testSanitizeValueReturnsUnchangedValue(): void
+    {
+        $reflection = new \ReflectionClass(EnvLoader::class);
+        $method = $reflection->getMethod('sanitizeValue');
+        $method->setAccessible(true);
+
+        $this->assertEquals('value', $method->invokeArgs(null, ['value']));
+    }
 }

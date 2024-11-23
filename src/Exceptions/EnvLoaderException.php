@@ -12,4 +12,9 @@ use RuntimeException;
  */
 class EnvLoaderException extends RuntimeException
 {
+    public function customErrorMessage(): string
+    {
+        return "EnvLoaderException: " . $this->getMessage();
+    }
+
 }

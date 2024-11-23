@@ -8,3 +8,5 @@ node_modules/
 # Docker volumes e arquivos de cache
 docker/*.log
 docker/php/php.log
+
+coverage

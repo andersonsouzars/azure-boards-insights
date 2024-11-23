@@ -6,14 +6,14 @@ use App\AzureBoards\Abstract\AbstractApiService;
 use App\AzureBoards\Contracts\AzureBoardsClientInterface;
 
 /**
- * Classe WorkItemService
+ * Classe IterationService
  *
- * Serviço responsável por recuperar os detalhes de Work Items na API do Azure Boards.
- * Este serviço encapsula a lógica necessária para interagir com o endpoint de consulta de Work Items.
+ * Serviço responsável por recuperar os iterations de uma Squad na API do Azure Boards.
+ * Este serviço encapsula a lógica necessária para interagir com o endpoint de consulta de Iterations.
  *
  * @package App\AzureBoards\Services
  */
-class WorkItemService extends AbstractApiService
+class IterationService extends AbstractApiService
 {
     /**
      * @var AzureBoardsClientInterface Cliente para realizar requisições HTTP autenticadas à API do Azure Boards.
@@ -21,19 +21,19 @@ class WorkItemService extends AbstractApiService
     private AzureBoardsClientInterface $client;
 
     /**
-     * Construtor da classe WorkItemService.
+     * Construtor da classe IterationService.
      *
      * @param AzureBoardsClientInterface $client Instância do cliente para comunicação com a API do Azure Boards.
-     * @param string $organization Nome da organização no Azure DevOps.
      */
     public function __construct(AzureBoardsClientInterface $client)
     {
-        $this->client = $client;
-
         $organization = $_ENV['AZURE_DEVOPS_ORGANIZATION'];
-        
-        $this->url = "https://dev.azure.com/$organization/_apis/wit/workitems";
+        $project = $_ENV['AZURE_DEVOPS_PROJECT'];
+        $team = rawurlencode($_ENV['AZURE_DEVOPS_TEAM']);
 
+        $this->client = $client;
+        $this->url = "https://dev.azure.com/$organization/$project/$team/_apis/work/teamsettings/iterations?api-version=7.0";
+        
     }
 
     /**
@@ -47,10 +47,6 @@ class WorkItemService extends AbstractApiService
      */
     public function execute(array $params): array
     {
-        $ids = implode(",", $params['ids']);
-        $fields = $params['fields'] ?? 'System.State,System.ChangedDate';
-        $this->url .= "?ids={$ids}&fields={$fields}&api-version=7.0";
-
         return $this->client->request('GET', $this->url);
     }
 }

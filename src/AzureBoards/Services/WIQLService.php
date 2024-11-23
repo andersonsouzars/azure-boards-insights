@@ -2,7 +2,7 @@
 
 namespace App\AzureBoards\Services;
 
-use App\AzureBoards\Contracts\ApiServiceInterface;
+use App\AzureBoards\Abstract\AbstractApiService;
 use App\AzureBoards\Contracts\AzureBoardsClientInterface;
 
 /**
@@ -13,22 +13,12 @@ use App\AzureBoards\Contracts\AzureBoardsClientInterface;
  *
  * @package App\AzureBoards\Services
  */
-class WIQLService implements ApiServiceInterface
+class WIQLService extends AbstractApiService
 {
     /**
      * @var AzureBoardsClientInterface Cliente para realizar requisições HTTP autenticadas à API do Azure Boards.
      */
     private AzureBoardsClientInterface $client;
-
-    /**
-     * @var string Nome da organização no Azure DevOps.
-     */
-    private string $organization;
-
-    /**
-     * @var string Nome do projeto no Azure DevOps.
-     */
-    private string $project;
 
     /**
      * Construtor da classe WIQLService.
@@ -37,11 +27,13 @@ class WIQLService implements ApiServiceInterface
      * @param string $organization Nome da organização no Azure DevOps.
      * @param string $project Nome do projeto no Azure DevOps.
      */
-    public function __construct(AzureBoardsClientInterface $client, string $organization, string $project)
+    public function __construct(AzureBoardsClientInterface $client)
     {
         $this->client = $client;
-        $this->organization = $organization;
-        $this->project = $project;
+
+        $organization = $_ENV['AZURE_DEVOPS_ORGANIZATION'];
+        $project = $_ENV['AZURE_DEVOPS_PROJECT'];
+        $this->url = "https://dev.azure.com/{$organization}/{$project}/_apis/wit/wiql?api-version=7.0";
     }
 
     /**
@@ -53,7 +45,6 @@ class WIQLService implements ApiServiceInterface
      */
     public function execute(array $params): array
     {
-        $url = "https://dev.azure.com/{$this->organization}/{$this->project}/_apis/wit/wiql?api-version=7.0";
-        return $this->client->request('POST', $url, ['json' => $params]);
+        return $this->client->request('POST', $this->url, ['json' => $params]);
     }
 }

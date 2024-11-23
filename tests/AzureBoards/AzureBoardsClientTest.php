@@ -33,7 +33,7 @@ class AzureBoardsClientTest extends TestCase
                        ->willReturn($mockResponse);
 
         // Simula a injeção do cliente no AzureBoardsClient
-        $azureClient = new AzureBoardsClient('fake-pat', $mockHttpClient);
+        $azureClient = new AzureBoardsClient($mockHttpClient);
 
         $response = $azureClient->request('GET', 'https://example.com');
 
@@ -57,7 +57,7 @@ class AzureBoardsClientTest extends TestCase
                        ->willThrowException(new \Exception('Request failed'));
 
         // Simula a injeção do cliente no AzureBoardsClient
-        $azureClient = new AzureBoardsClient('fake-pat', $mockHttpClient);
+        $azureClient = new AzureBoardsClient($mockHttpClient);
 
         $this->expectException(\RuntimeException::class);
         $this->expectExceptionMessage('Falha na requisição à API do Azure Boards: Request failed');
