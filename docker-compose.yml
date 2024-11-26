@@ -9,6 +9,7 @@ services:
       - .:/var/www/html  # Mapeia todo o projeto para /var/www/html no container
     depends_on:
       - php
+      - mariadb
     networks:
       - abi-net
 
@@ -21,9 +22,29 @@ services:
     environment:
       - XDEBUG_MODE=coverage
       - XDEBUG_CONFIG="client_host=host.docker.internal"
+    depends_on:
+      - mariadb
+    networks:
+      - abi-net
+
+  mariadb:
+    image: mariadb:latest
+    container_name: abi_mariadb
+    environment:
+      MYSQL_ROOT_PASSWORD: root_password
+      MYSQL_DATABASE: app_database
+      MYSQL_USER: app_user
+      MYSQL_PASSWORD: app_password
+    ports:
+      - "3306:3306"
+    volumes:
+      - mariadb_data:/var/lib/mysql
     networks:
       - abi-net
 
 networks:
   abi-net:
     driver: bridge
+
+volumes:
+  mariadb_data:
